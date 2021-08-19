@@ -5,9 +5,10 @@
 // - 获取当前的位置
 // - 回溯
 // 	就是重新设置一下 position （位置）
-
+import { tokenArray } from "./token";
+import type { Token } from "./token";
 export class Tokenizer {
-  private _tokens: Array<any>;
+  private _tokens: Array<Token>;
   private _position: any;
   // Implement
   constructor(tokens: Array<any>) {
@@ -22,4 +23,16 @@ export class Tokenizer {
 
     return this._tokens[this._position++];
   }
+
+  position() {
+    return this._position;
+  }
+
+  traceBack(number: number) {
+    this._position = number;
+  }
+}
+
+export function createTokenizer() {
+  return new Tokenizer(tokenArray);
 }
