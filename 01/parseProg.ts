@@ -1,6 +1,7 @@
 import { Tokenizer } from "./Tokenizer";
 import { Prog } from "./Prog";
 import { TokenKind } from "./token";
+import type { Token } from "./token";
 
 abstract class AstNode {}
 
@@ -21,6 +22,16 @@ export default class FunctionDecl extends Statement {
   }
 }
 
+class FunctionCall extends Statement {
+  name: any;
+  params: any;
+  constructor(name, params) {
+    super();
+    this.name = name;
+    this.params = params;
+  }
+}
+
 /**
  * 解析Prog
  * 语法规则：
@@ -38,7 +49,7 @@ export function parseProg(tokenizer: Tokenizer) {
       continue;
     }
 
-    const functionCallStatement = parseFunctionCall();
+    const functionCallStatement = parseFunctionCall(tokenizer);
     if (functionCallStatement) {
       stmts.push(functionCallStatement);
       continue;
@@ -99,7 +110,47 @@ function parseFunctionBody(): any {
   return true;
 }
 
-function parseFunctionCall(): Statement {
-  // Implement
+/**
+ * 解析函数调用
+ * 语法规则：
+ * functionCall : Identifier '(' parameterList? ')' ;
+ * parameterList : StringLiteral (',' StringLiteral)* ;
+ */
+export function parseFunctionCall(tokenizer: Tokenizer): Statement | null {
+  console.log("执行 parseFunctionCall");
+  let token = tokenizer.next();
+  let parameters: Array<Token> = [];
+  let functionName = "";
+  // 看看第一个 token 是不是 Identifier 类型
+  if (token.kind === TokenKind.Identifier) {
+    functionName = token.text;
+    // 看看第二个 token 是不是 (
+    token = tokenizer.next();
+    if (token.text === "(") {
+      // 那么我们需要把 parameter 都取出来
+      // 碰到 ) 的时候结束收集参数
+      let t2 = tokenizer.next();
+      // 因为参数是允许有多个的，所以需要循环的找
+      // 而循环的结束条件就是碰到 )
+      while (t2.text !== ")") {
+        if (!(t2.text === "," && t2.kind === TokenKind.Seperator)) {
+          // 把 , 给过滤掉
+          parameters.push(t2);
+        }
+        t2 = tokenizer.next();
+      }
+
+      // 到这里就以为这遇到 ) 了，
+      // 结束对参数的收集了
+
+      // 还需要看看最后一个 token 是不是分号 (;)
+      if (tokenizer.next().text === ";") {
+        console.log("functionName", functionName);
+        console.log("function parameters", parameters);
+        new FunctionCall(functionName, parameters);
+      }
+    }
+  }
+
   return null;
 }
