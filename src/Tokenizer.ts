@@ -24,6 +24,10 @@ export class Tokenizer {
     return this._tokens[this._position++];
   }
 
+  peer() {
+    return this._tokens[this._position];
+  }
+
   position() {
     return this._position;
   }
@@ -33,6 +37,6 @@ export class Tokenizer {
   }
 }
 
-export function createTokenizer() {
-  return new Tokenizer(tokenArray);
+export function createTokenizer(tokens: Array<Token>) {
+  return new Tokenizer(tokens);
 }

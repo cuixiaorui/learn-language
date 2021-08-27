@@ -1,4 +1,4 @@
-import { Tokenizer } from "./Tokenizer";
+import { Tokenizer } from "../src/Tokenizer";
 
 describe("Tokenizer", () => {
   it('should is "function" when first call next', () => {

@@ -21,11 +21,11 @@ export type Token = {
 // //调用刚才声明的函数
 // sayHello();
 export const tokenArray: Token[] = [
-  // { kind: TokenKind.Keyword, text: "function" },
-  // { kind: TokenKind.Identifier, text: "sayHello" },
-  // { kind: TokenKind.Seperator, text: "(" },
-  // { kind: TokenKind.Seperator, text: ")" },
-  // { kind: TokenKind.Seperator, text: "{" },
+  { kind: TokenKind.Keyword, text: "function" },
+  { kind: TokenKind.Identifier, text: "sayHello" },
+  { kind: TokenKind.Seperator, text: "(" },
+  { kind: TokenKind.Seperator, text: ")" },
+  { kind: TokenKind.Seperator, text: "{" },
   { kind: TokenKind.Identifier, text: "println" },
   { kind: TokenKind.Seperator, text: "(" },
   { kind: TokenKind.StringLiteral, text: "Hello" },
@@ -33,10 +33,10 @@ export const tokenArray: Token[] = [
   { kind: TokenKind.StringLiteral, text: "World!" },
   { kind: TokenKind.Seperator, text: ")" },
   { kind: TokenKind.Seperator, text: ";" },
-  // { kind: TokenKind.Seperator, text: "}" },
-  // { kind: TokenKind.Identifier, text: "sayHello" },
-  // { kind: TokenKind.Seperator, text: "(" },
-  // { kind: TokenKind.Seperator, text: ")" },
-  // { kind: TokenKind.Seperator, text: ";" },
+  { kind: TokenKind.Seperator, text: "}" },
+  { kind: TokenKind.Identifier, text: "sayHello" },
+  { kind: TokenKind.Seperator, text: "(" },
+  { kind: TokenKind.Seperator, text: ")" },
+  { kind: TokenKind.Seperator, text: ";" },
   { kind: TokenKind.EOF, text: "" },
 ];

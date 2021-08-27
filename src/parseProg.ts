@@ -1,5 +1,4 @@
 import { Tokenizer } from "./Tokenizer";
-import { Prog } from "./Prog";
 import { TokenKind } from "./token";
 import type { Token } from "./token";
 
@@ -9,24 +8,51 @@ abstract class AstNode {}
  * 语句
  * 其子类包括函数声明和函数调用
  */
-export abstract class Statement extends AstNode {}
+export abstract class Statement extends AstNode {
+  type: string;
+  constructor(type) {
+    super();
+    this.type = type;
+  }
+}
 
-export default class FunctionDecl extends Statement {
+// ast 的 root node
+export class Prog extends AstNode {
+  stmts: Array<Statement>;
+  // Implement
+  constructor(stmts) {
+    super();
+    this.stmts = stmts;
+  }
+}
+
+// function 声明
+export class FunctionDecl extends Statement {
   name: any;
   functionBody: any;
   constructor(name: string, functionBody) {
-    super();
+    super("functionDecl");
     // 声明需要名称和 body 的内容
     this.name = name;
     this.functionBody = functionBody;
   }
 }
 
-class FunctionCall extends Statement {
+class FunctionBody extends Statement {
+  stats: any;
+  constructor(stats) {
+    super("functionBody");
+    this.stats = stats;
+  }
+}
+
+// function 的调用
+export class FunctionCall extends Statement {
   name: any;
   params: any;
+  definition:any
   constructor(name, params) {
-    super();
+    super("functionCall");
     this.name = name;
     this.params = params;
   }
@@ -61,7 +87,7 @@ export function parseProg(tokenizer: Tokenizer) {
   }
 
   // 这个就是 AST 的根节点
-  return new Prog();
+  return new Prog(stmts);
 }
 
 /**
@@ -83,7 +109,7 @@ function parseFunctionDecl(tokenizer: Tokenizer): Statement | null | void {
         token = tokenizer.next();
         if (token.text === ")") {
           // 看看是不是 functionBody 了
-          const functionBodyStat = parseFunctionBody();
+          const functionBodyStat = parseFunctionBody(tokenizer);
           if (functionBodyStat) {
             // 解析 functionDec 成功了
             return new FunctionDecl(functionName, functionBodyStat);
@@ -103,11 +129,37 @@ function parseFunctionDecl(tokenizer: Tokenizer): Statement | null | void {
   // 那么需要回溯
   // 因为后面还需要尝试看看是不是别的语句
   tokenizer.traceBack(startPosition);
-  return null;
 }
 
-function parseFunctionBody(): any {
-  return true;
+/**
+ * 解析函数体
+ * 语法规则：
+ * functionBody : '{' functionCall* '}' ;
+ */
+function parseFunctionBody(tokenizer: Tokenizer): any {
+  let token = tokenizer.next();
+  let startPoint = tokenizer.position();
+  let stats: Array<Statement> = [];
+  if (token.kind === TokenKind.Seperator && token.text === "{") {
+    let functionCallStat = parseFunctionCall(tokenizer);
+
+    while (functionCallStat) {
+      stats.push(functionCallStat);
+      functionCallStat = parseFunctionCall(tokenizer);
+    }
+
+    token = tokenizer.peer();
+    if (token.text === "}") {
+      return new FunctionBody(stats);
+    } else {
+      console.log(tokenizer.position());
+      console.log(token);
+      console.log("没有找到 }");
+      return;
+    }
+  }
+
+  tokenizer.traceBack(startPoint);
 }
 
 /**
@@ -116,9 +168,9 @@ function parseFunctionBody(): any {
  * functionCall : Identifier '(' parameterList? ')' ;
  * parameterList : StringLiteral (',' StringLiteral)* ;
  */
-export function parseFunctionCall(tokenizer: Tokenizer): Statement | null {
-  console.log("执行 parseFunctionCall");
+function parseFunctionCall(tokenizer: Tokenizer): Statement | null | void {
   let token = tokenizer.next();
+  let startPoint = tokenizer.position();
   let parameters: Array<Token> = [];
   let functionName = "";
   // 看看第一个 token 是不是 Identifier 类型
@@ -144,13 +196,17 @@ export function parseFunctionCall(tokenizer: Tokenizer): Statement | null {
       // 结束对参数的收集了
 
       // 还需要看看最后一个 token 是不是分号 (;)
-      if (tokenizer.next().text === ";") {
-        console.log("functionName", functionName);
-        console.log("function parameters", parameters);
-        new FunctionCall(functionName, parameters);
+      if (tokenizer.peer().text === ";") {
+        return new FunctionCall(functionName, parameters);
+      } else {
+        console.log("没有找到分号;");
+        return;
       }
+    } else {
+      console.log("没有找到 (");
+      return;
     }
   }
 
-  return null;
+  tokenizer.traceBack(startPoint);
 }
