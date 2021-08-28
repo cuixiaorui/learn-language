@@ -157,8 +157,8 @@ function parseFunctionDecl(tokenizer) {
  * functionBody : '{' functionCall* '}' ;
  */
 function parseFunctionBody(tokenizer) {
-    var token = tokenizer.next();
     var startPoint = tokenizer.position();
+    var token = tokenizer.next();
     var stats = [];
     if (token.kind === token_1.TokenKind.Seperator && token.text === "{") {
         var functionCallStat = parseFunctionCall(tokenizer);
@@ -184,8 +184,8 @@ function parseFunctionBody(tokenizer) {
  * parameterList : StringLiteral (',' StringLiteral)* ;
  */
 function parseFunctionCall(tokenizer) {
-    var token = tokenizer.next();
     var startPoint = tokenizer.position();
+    var token = tokenizer.next();
     var parameters = [];
     var functionName = "";
     // 看看第一个 token 是不是 Identifier 类型
@@ -209,7 +209,7 @@ function parseFunctionCall(tokenizer) {
             // 到这里就以为这遇到 ) 了，
             // 结束对参数的收集了
             // 还需要看看最后一个 token 是不是分号 (;)
-            if (tokenizer.peer().text === ";") {
+            if (tokenizer.next().text === ";") {
                 return new FunctionCall(functionName, parameters);
             }
             else {

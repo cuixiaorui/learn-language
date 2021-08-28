@@ -137,8 +137,8 @@ function parseFunctionDecl(tokenizer: Tokenizer): Statement | null | void {
  * functionBody : '{' functionCall* '}' ;
  */
 function parseFunctionBody(tokenizer: Tokenizer): any {
-  let token = tokenizer.next();
   let startPoint = tokenizer.position();
+  let token = tokenizer.next();
   let stats: Array<Statement> = [];
   if (token.kind === TokenKind.Seperator && token.text === "{") {
     let functionCallStat = parseFunctionCall(tokenizer);
@@ -167,8 +167,8 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
  * parameterList : StringLiteral (',' StringLiteral)* ;
  */
 function parseFunctionCall(tokenizer: Tokenizer): Statement | null | void {
-  let token = tokenizer.next();
   let startPoint = tokenizer.position();
+  let token = tokenizer.next();
   let parameters: Array<Token> = [];
   let functionName = "";
   // 看看第一个 token 是不是 Identifier 类型
@@ -194,7 +194,7 @@ function parseFunctionCall(tokenizer: Tokenizer): Statement | null | void {
       // 结束对参数的收集了
 
       // 还需要看看最后一个 token 是不是分号 (;)
-      if (tokenizer.peer().text === ";") {
+      if (tokenizer.next().text === ";") {
         return new FunctionCall(functionName, parameters);
       } else {
         console.log("没有找到分号;");

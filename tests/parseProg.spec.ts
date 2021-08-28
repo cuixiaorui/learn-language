@@ -1,9 +1,12 @@
 import { parseProg } from "../src/parseProg";
 import { createTokenizer } from "../src/Tokenizer";
-import { Token, TokenKind } from "../src/token";
+import { Token, TokenKind, tokenArray } from "../src/token";
 
 describe("parseProg", () => {
-  it.only("parseFunctionBody happy path", () => {
+  it.only("happy path", () => {
+    parseProg(createTokenizer(tokenArray));
+  });
+  it("parseFunctionBody happy path", () => {
     const tokenArray: Token[] = [
       { kind: TokenKind.Keyword, text: "function" },
       { kind: TokenKind.Identifier, text: "sayHello" },
