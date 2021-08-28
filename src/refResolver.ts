@@ -4,10 +4,10 @@ export function refResolver(prog: Prog) {
   function handleFunctionCall(stmt) {
     const functionDecl = findFunctionDecl(prog, stmt);
     if (functionDecl) {
-      (stmt as FunctionCall).definition = functionDecl;
+      stmt.definition = functionDecl;
     } else {
       // 看看是不是系统内置的函数
-      if ((stmt as FunctionCall).name === "println") {
+      if (stmt.name === "println") {
         // 内置函数 不用管
       } else {
         throw new Error(`函数 ${(stmt as FunctionCall).name}没有定义`);

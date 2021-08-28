@@ -29,7 +29,7 @@ export class Prog extends AstNode {
 // function 声明
 export class FunctionDecl extends Statement {
   name: any;
-  functionBody: any;
+  functionBody: FunctionBody;
   constructor(name: string, functionBody) {
     super("functionDecl");
     // 声明需要名称和 body 的内容
@@ -148,7 +148,7 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
       functionCallStat = parseFunctionCall(tokenizer);
     }
 
-    token = tokenizer.peer();
+    token = tokenizer.next();
     if (token.text === "}") {
       return new FunctionBody(stats);
     } else {
