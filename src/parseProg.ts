@@ -40,9 +40,9 @@ export class FunctionDecl extends Statement {
 
 class FunctionBody extends Statement {
   stats: any;
-  constructor(stats) {
+  constructor(stat) {
     super("functionBody");
-    this.stats = stats;
+    this.stats = stat;
   }
 }
 
@@ -50,11 +50,11 @@ class FunctionBody extends Statement {
 export class FunctionCall extends Statement {
   name: any;
   params: any;
-  definition:any
-  constructor(name, params) {
+  definition: any;
+  constructor(name, params: Array<Token>) {
     super("functionCall");
     this.name = name;
-    this.params = params;
+    this.params = params.map((token) => token.text);
   }
 }
 
@@ -152,8 +152,6 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
     if (token.text === "}") {
       return new FunctionBody(stats);
     } else {
-      console.log(tokenizer.position());
-      console.log(token);
       console.log("没有找到 }");
       return;
     }

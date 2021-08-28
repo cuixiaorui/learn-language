@@ -1,7 +1,7 @@
 import { Prog, FunctionDecl, FunctionCall } from "./parseProg";
 
 export function refResolver(prog: Prog) {
-  function handleFunctionCall(stmt) {
+  function visitFunctionBody(stmt) {
     const functionDecl = findFunctionDecl(prog, stmt);
     if (functionDecl) {
       stmt.definition = functionDecl;
@@ -23,11 +23,11 @@ export function refResolver(prog: Prog) {
   prog.stmts.forEach((stmt) => {
     // 是不是 functionCall
     if (stmt.type === "functionCall") {
-      handleFunctionCall(stmt);
+      visitFunctionBody(stmt);
     } else if (stmt.type === "functionDecl") {
       const functionBody = (stmt as FunctionDecl).functionBody;
       functionBody.stats.forEach((stmt) => {
-        handleFunctionCall(stmt);
+        visitFunctionBody(stmt);
       });
     }
   });
