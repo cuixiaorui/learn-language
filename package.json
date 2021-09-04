@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc src/main.ts"
+    "build": "rollup -c rollup.config.js"
   },
   "keywords": [],
   "author": "",
@@ -14,9 +14,12 @@
     "@babel/core": "^7.15.0",
     "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
+    "@rollup/plugin-typescript": "^8.2.5",
     "@types/jest": "^27.0.1",
     "babel-jest": "^27.0.6",
-    "jest": "^27.0.6"
+    "jest": "^27.0.6",
+    "rollup": "^2.56.3",
+    "tslib": "^2.3.1"
   },
   "dependencies": {
     "typescript": "^4.4.2"
