@@ -168,19 +168,38 @@ export function parseToken(program: string): Array<Token> {
 
   const stream = new CharStream(program);
 
-  let ch = stream.peer();
-  // 1. 要获取 program 第一个 字符
-  //    看看第一个字符是不是字母的话
-  // LL(1)文法
-  if (isLetter(ch)) {
-    token = parseIdentifier(stream);
-  } else if (ch === '"') {
-    token = parseStringLiteral(stream);
-  } else if (isSeparator(ch)) {
-    token = parseSeparator(stream);
+  while (!stream.eof()) {
+    let ch = stream.peer();
+
+    // 如果是一个空白符的话，那么就直接跳过去
+    while (
+      stream.peer() === " " ||
+      stream.peer() === "\n" ||
+      stream.peer() === "\t"
+    ) {
+      stream.next();
+    }
+
+    ch = stream.peer();
+
+    // 优化点，如果所有的空白符都过完，在检测一下 因为有可能是结尾
+    if (stream.eof()) break;
+
+    if (isLetter(ch)) {
+      // 1. 要获取 program 第一个 字符
+      //    看看第一个字符是不是字母的话
+      // LL(1)文法
+      token = parseIdentifier(ch, stream);
+    } else if (ch === '"') {
+      token = parseStringLiteral(stream);
+    } else if (isSeparator(ch)) {
+      token = parseSeparator(stream);
+    }
+    tokens.push(token);
   }
 
-  tokens.push(token);
+  tokens.push({ kind: TokenKind.EOF, text: "" });
+
   return tokens;
 }
 
@@ -197,6 +216,8 @@ function parseStringLiteral(stream: CharStream) {
   while (!stream.eof() && stream.peer() !== '"') {
     stringLiteral += stream.next();
   }
+  // 在多调用一次 next ，跳过后面的 "
+  stream.next();
   return { kind: TokenKind.StringLiteral, text: stringLiteral };
 }
 
@@ -207,7 +228,7 @@ export function isSeparator(ch) {
 }
 
 export function isLetter(char) {
-  return /[a-z]/.test(char);
+  return /[a-zA-Z]/.test(char);
 }
 
 export function isDigit(char) {
@@ -218,18 +239,23 @@ export function isUnderline(char) {
   return /_/.test(char);
 }
 
-function parseIdentifier(stream): Token {
+function parseIdentifier(ch, stream): Token {
   // 如果后面的是字符或者数字或者下划线的话 ，那么都 ok
-  let identifier = stream.peer();
+  let identifier = ch;
   stream.next();
 
-  const isLetterOrDigitOrUnderline =
+  const isLetterOrDigitOrUnderline = () =>
     isLetter(stream.peer()) ||
     isDigit(stream.peer()) ||
     isUnderline(stream.peer());
 
-  while (isLetterOrDigitOrUnderline && !stream.eof()) {
+  while (isLetterOrDigitOrUnderline() && !stream.eof()) {
     identifier += stream.next();
+  }
+
+  // 如果说 identifier 是一个关键字的话，那么需要改变一下类型
+  if (identifier === "function") {
+    return { kind: TokenKind.Keyword, text: identifier };
   }
 
   return { kind: TokenKind.Identifier, text: identifier };

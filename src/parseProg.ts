@@ -140,7 +140,7 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
   let startPoint = tokenizer.position();
   let token = tokenizer.next();
   let stats: Array<Statement> = [];
-  if (token.kind === TokenKind.Seperator && token.text === "{") {
+  if (token.kind === TokenKind.Separator && token.text === "{") {
     let functionCallStat = parseFunctionCall(tokenizer);
 
     while (functionCallStat) {
@@ -183,7 +183,7 @@ function parseFunctionCall(tokenizer: Tokenizer): Statement | null | void {
       // 因为参数是允许有多个的，所以需要循环的找
       // 而循环的结束条件就是碰到 )
       while (t2.text !== ")") {
-        if (!(t2.text === "," && t2.kind === TokenKind.Seperator)) {
+        if (!(t2.text === "," && t2.kind === TokenKind.Separator)) {
           // 把 , 给过滤掉
           parameters.push(t2);
         }

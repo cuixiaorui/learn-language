@@ -17,12 +17,19 @@
 
 import { parseProg } from "./parseProg";
 import { createTokenizer } from "./Tokenizer";
-import { tokenArray } from "./token";
+import { parseToken } from "./token";
 import { refResolver } from "./refResolver";
-import {interpret} from './Interpreter'
+import { interpret } from "./Interpreter";
 
 // 把生成的 tokens 给到 parseProg 来做语法分析
-const prog = parseProg(createTokenizer(tokenArray));
+const progString = `function sayHello(){
+	println("Hello","World!");
+    } 
+
+    sayHello();
+    `;
+const tokens = parseToken(progString);
+const prog = parseProg(createTokenizer(tokens));
 refResolver(prog);
 interpret(prog);
 
