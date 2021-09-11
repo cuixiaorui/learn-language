@@ -66,23 +66,25 @@ export class FunctionCall extends Statement {
 
 export function parseProg(tokenizer: Tokenizer) {
   const stmts: Array<Statement> = [];
-  while (true) {
+
+  // 如果说 遇到了token 结尾的话 那么就跳出循环
+  while (tokenizer.peer().kind !== TokenKind.EOF) {
     // statements
     // 先尝试看看是不是 functionDecl
-    const functionDeclStatement = parseFunctionDecl(tokenizer);
-    if (functionDeclStatement) {
-      stmts.push(functionDeclStatement);
-      continue;
+    const token = tokenizer.peer();
+    let statement;
+
+    if (token.kind === TokenKind.Keyword && token.text === "function") {
+      // 1. 先取出一个 token 来， 看看是不是 function 开头
+      //    如果是 function 开头的话，那么就是一个 函数声明
+      statement = parseFunctionDecl(tokenizer);
+    } else if (token.kind === TokenKind.Identifier) {
+      // 如果是标识符开始的话，这里就认为是 函数调用
+      statement = parseFunctionCall(tokenizer);
     }
 
-    const functionCallStatement = parseFunctionCall(tokenizer);
-    if (functionCallStatement) {
-      stmts.push(functionCallStatement);
-      continue;
-    }
-
-    if (!functionCallStatement && !functionDeclStatement) {
-      break;
+    if (statement) {
+      stmts.push(statement);
     }
   }
 
@@ -96,39 +98,34 @@ export function parseProg(tokenizer: Tokenizer) {
  * functionDecl: "function" Identifier "(" ")"  functionBody;
  */
 function parseFunctionDecl(tokenizer: Tokenizer): Statement | null | void {
-  let startPosition = tokenizer.position();
-  let token = tokenizer.next();
+  // 跳过 function
+  // 因为进到这个函数的话，就已经确认了必然是函数声明
+  // 只会有2个结果：要不就解析语法是正确的，要不就是语法有问题
+  tokenizer.next();
   let functionName = "";
-  if (token.text === "function" && token.kind === TokenKind.Keyword) {
-    // 那么可以看看第二个 是不是 Identifier 类型的值
+  // 那么可以看看第二个 是不是 Identifier 类型的值
+  let token = tokenizer.next();
+  if (token.kind === TokenKind.Identifier) {
+    functionName = token.text;
     token = tokenizer.next();
-    if (token.kind === TokenKind.Identifier) {
-      functionName = token.text;
+    if (token.text === "(") {
       token = tokenizer.next();
-      if (token.text === "(") {
-        token = tokenizer.next();
-        if (token.text === ")") {
-          // 看看是不是 functionBody 了
-          const functionBodyStat = parseFunctionBody(tokenizer);
-          if (functionBodyStat) {
-            // 解析 functionDec 成功了
-            return new FunctionDecl(functionName, functionBodyStat);
-          }
-        } else {
-          console.log("不好意思 没有找到 )");
-          return;
+      if (token.text === ")") {
+        // 看看是不是 functionBody 了
+        const functionBodyStat = parseFunctionBody(tokenizer);
+        if (functionBodyStat) {
+          // 解析 functionDec 成功了
+          return new FunctionDecl(functionName, functionBodyStat);
         }
       } else {
-        console.log("不好意思 没有找到 (");
+        console.log("不好意思 没有找到 )");
         return;
       }
+    } else {
+      console.log("不好意思 没有找到 (");
+      return;
     }
   }
-
-  // 如果上面的出现了问题的话
-  // 那么需要回溯
-  // 因为后面还需要尝试看看是不是别的语句
-  tokenizer.traceBack(startPosition);
 }
 
 /**
@@ -137,15 +134,16 @@ function parseFunctionDecl(tokenizer: Tokenizer): Statement | null | void {
  * functionBody : '{' functionCall* '}' ;
  */
 function parseFunctionBody(tokenizer: Tokenizer): any {
-  let startPoint = tokenizer.position();
   let token = tokenizer.next();
   let stats: Array<Statement> = [];
   if (token.kind === TokenKind.Separator && token.text === "{") {
-    let functionCallStat = parseFunctionCall(tokenizer);
-
-    while (functionCallStat) {
-      stats.push(functionCallStat);
-      functionCallStat = parseFunctionCall(tokenizer);
+    // 看看 token 是不是一个标识符 如果是的话，那么认为是函数调用
+    // 就可以去解析函数调用了
+    while (tokenizer.peer().kind === TokenKind.Identifier) {
+      let functionCallStat = parseFunctionCall(tokenizer);
+      if (functionCallStat) {
+        stats.push(functionCallStat);
+      }
     }
 
     token = tokenizer.next();
@@ -155,9 +153,9 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
       console.log("没有找到 }");
       return;
     }
+  } else {
+    console.log("没有找到 {");
   }
-
-  tokenizer.traceBack(startPoint);
 }
 
 /**
@@ -166,45 +164,40 @@ function parseFunctionBody(tokenizer: Tokenizer): any {
  * functionCall : Identifier '(' parameterList? ')' ;
  * parameterList : StringLiteral (',' StringLiteral)* ;
  */
-function parseFunctionCall(tokenizer: Tokenizer): Statement | null | void {
-  let startPoint = tokenizer.position();
+function parseFunctionCall(tokenizer: Tokenizer): Statement | void {
   let token = tokenizer.next();
   let parameters: Array<Token> = [];
   let functionName = "";
   // 看看第一个 token 是不是 Identifier 类型
-  if (token.kind === TokenKind.Identifier) {
-    functionName = token.text;
-    // 看看第二个 token 是不是 (
-    token = tokenizer.next();
-    if (token.text === "(") {
-      // 那么我们需要把 parameter 都取出来
-      // 碰到 ) 的时候结束收集参数
-      let t2 = tokenizer.next();
-      // 因为参数是允许有多个的，所以需要循环的找
-      // 而循环的结束条件就是碰到 )
-      while (t2.text !== ")") {
-        if (!(t2.text === "," && t2.kind === TokenKind.Separator)) {
-          // 把 , 给过滤掉
-          parameters.push(t2);
-        }
-        t2 = tokenizer.next();
+  functionName = token.text;
+  // 看看第二个 token 是不是 (
+  token = tokenizer.next();
+  if (token.text === "(") {
+    // 那么我们需要把 parameter 都取出来
+    // 碰到 ) 的时候结束收集参数
+    let t2 = tokenizer.next();
+    // 因为参数是允许有多个的，所以需要循环的找
+    // 而循环的结束条件就是碰到 )
+    while (t2.text !== ")") {
+      if (!(t2.text === "," && t2.kind === TokenKind.Separator)) {
+        // 把 , 给过滤掉
+        parameters.push(t2);
       }
+      t2 = tokenizer.next();
+    }
 
-      // 到这里就以为这遇到 ) 了，
-      // 结束对参数的收集了
+    // 到这里就以为这遇到 ) 了，
+    // 结束对参数的收集了
 
-      // 还需要看看最后一个 token 是不是分号 (;)
-      if (tokenizer.next().text === ";") {
-        return new FunctionCall(functionName, parameters);
-      } else {
-        console.log("没有找到分号;");
-        return;
-      }
+    // 还需要看看最后一个 token 是不是分号 (;)
+    if (tokenizer.next().text === ";") {
+      return new FunctionCall(functionName, parameters);
     } else {
-      console.log("没有找到 (");
+      console.log("没有找到分号;");
       return;
     }
+  } else {
+    console.log("没有找到 (");
+    return;
   }
-
-  tokenizer.traceBack(startPoint);
 }
