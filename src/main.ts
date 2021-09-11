@@ -21,13 +21,23 @@ import { parseToken } from "./token";
 import { refResolver } from "./refResolver";
 import { interpret } from "./Interpreter";
 
-// 把生成的 tokens 给到 parseProg 来做语法分析
+// 使用正则快速的解析 token
+// const r = /(function)|([a-zA-Z]+)|(\"[^\"]*\")|(\()|(\))|(\{)|(,)|(;)|(\s)/g;
+// console.log(r.exec(progString))
+// console.log(r.exec(progString))
+// console.log(r.exec(progString))
+// console.log(r.exec(progString))
+// console.log(r.exec(progString))
+// console.log(r.exec(progString))
+
+// // 把生成的 tokens 给到 parseProg 来做语法分析
 const progString = `function sayHello(){
-	println("Hello","World!");
+	println("Hello","World!!!!!");
     } 
 
     sayHello();
     `;
+
 const tokens = parseToken(progString);
 const prog = parseProg(createTokenizer(tokens));
 refResolver(prog);
